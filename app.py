@@ -1,4 +1,7 @@
 import streamlit as st
+st.set_option('server.enableCORS', False)
+st.set_option('server.enableXsrfProtection', False)
+st.set_option('server.fileWatcherType', 'none')
 from file_handler import get_text
 from analyzer import calculate_match_score
 from gemini_utils import get_structured_analysis, generate_resume_from_prompt
