@@ -154,7 +154,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 🔥 Lottie Animation Helper
+# 🔥 Lottie Animation Helper with caching
+@st.cache_data(show_spinner=False)
 def load_lottieurl(url: str):
     r = requests.get(url)
     if r.status_code != 200:
@@ -191,7 +192,7 @@ if submit:
             st.markdown('</div>', unsafe_allow_html=True)
         
         try:
-            # Process the resume and JD
+            # Process the resume and JD with caching
             resume_text = get_text(resume_file)
             match_score = calculate_match_score(resume_text, jd_text)
             ai_response = get_structured_analysis(resume_text, jd_text)
@@ -245,7 +246,7 @@ Instructions:
 - Simply use line breaks for bullets inside SKILLS and EXPERIENCE.
 - Keep the format professional, clean, and ATS-friendly.
 
---- Job Description ---
+--- Job Description --- 
 {jd_text}
 
 --- Candidate's Resume ---
