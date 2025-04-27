@@ -23,7 +23,6 @@ st.markdown("""
         margin: 0 !important;
         padding: 0 !important;
         height: 100vh;
-        overflow: hidden !important;
     }
 
     /* ====== MAIN CONTAINER FIXES ====== */
@@ -32,7 +31,6 @@ st.markdown("""
         padding: 0 !important;
         margin: 0 !important;
         height: 100vh;
-        overflow: hidden !important;
     }
 
     .main .block-container {
@@ -52,7 +50,7 @@ st.markdown("""
     }
 
     .stFileUploader > section {
-        padding: 0 !important;
+        padding: 1rem !important;
         margin: 0 !important;
         border: none !important;
     }
