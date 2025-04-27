@@ -18,7 +18,7 @@ st.markdown("""
     /* ====== GLOBAL RESET ====== */
     html, body, [class*="css"] {
         font-family: 'Poppins', sans-serif;
-        background: #1D4E89;
+        background: #002D9C;
         color: #ffffff;
         margin: 0 !important;
         padding: 0 !important;
@@ -28,7 +28,7 @@ st.markdown("""
 
     /* ====== MAIN CONTAINER FIXES ====== */
     .stApp {
-        background-color: #1D4E89;
+        background-color: #002D9C;
         padding: 0 !important;
         margin: 0 !important;
         height: 100vh;
