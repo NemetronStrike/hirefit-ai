@@ -15,28 +15,142 @@ st.set_page_config(
 
 # 🎨 Enhanced CSS Styling
 st.markdown("""
-<style>
-/* ====== GLOBAL RESET ====== */
-html, body, [class*="css"] {
-    font-family: 'Poppins', sans-serif;
-    background: #002D9C;
-    color: #ffffff;
-    margin: 0 !important;
-    padding: 0 !important;
-    height: 100vh;
-}
-/* ====== MAIN CONTAINER FIXES ====== */
-.stApp {
-    background-color: #002D9C;
-    padding: 0 !important;
-    margin: 0 !important;
-    height: 100vh;
-}
-.main .block-container {
-    padding: 0 !important;
-    margin: 0 !important;
-}
-</style>
+    <style>
+    /* ====== GLOBAL RESET ====== */
+    html, body, [class*="css"] {
+        font-family: 'Poppins', sans-serif;
+        background: #002D9C;
+        color: #ffffff;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100vh;
+    }
+
+    /* ====== MAIN CONTAINER FIXES ====== */
+    .stApp {
+        background-color: #002D9C;
+        padding: 0 !important;
+        margin: 0 !important;
+        height: 100vh;
+    }
+
+    .main .block-container {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* ====== FILE UPLOADER SPECIFIC FIXES ====== */
+    .stFileUploader > div {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .stFileUploader > label {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .stFileUploader > section {
+        padding: 1rem !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+
+    .stFileUploader > div > div {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .stFileUploader .fileDropArea {
+        min-height: 100px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .stFileUploader .fileDropArea div:first-child {
+        margin-top: 0 !important;
+    }
+
+    /* ====== BUTTON FIXES ====== */
+    .stButton > button {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* ====== COLUMN LAYOUT FIXES ====== */
+    .st-emotion-cache-1wrcr25 {
+        padding: 0 !important;
+        margin: 0 !important;
+        gap: 0 !important;
+    }
+
+    /* ====== ANIMATION CONTAINER ====== */
+    .animation-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+    }
+
+    /* ====== YOUR ORIGINAL STYLES ====== */
+    h1, h2, h3, h4, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4 {
+        font-weight: 700;
+        color: #FFDD57 !important;
+        margin-bottom: 1rem !important;
+        font-size: 1.2rem;
+    }
+
+    .stTextArea, .stTextInput, .stFileUploader, .stButton > button {
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        background-color: #e1f5fe;
+        color: #1a1a1a;
+        padding: 10px;
+    }
+
+    .stButton > button {
+        background-color: #4e54c8;
+        color: white;
+        font-weight: 600;
+        border-radius: 12px;
+    }
+
+    .stButton > button:hover {
+        background-color: #565fdd;
+        transform: scale(1.02);
+    }
+
+    .stTabs [role="tab"] {
+        font-weight: 600;
+        font-size: 16px;
+        color: #1a1a1a;
+    }
+
+    .stMetric {
+        font-size: 32px !important;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    .stTextArea textarea:focus, .stFileUploader input:focus {
+        border: 2px solid #4e54c8;
+    }
+
+    .stExpander {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: none;
+    }
+
+    hr {
+        display: none;
+    }
+
+    ::-webkit-scrollbar {
+        display: none;
+    }
+    </style>
 """, unsafe_allow_html=True)
 
 # 🔥 Caching & Utility Functions
