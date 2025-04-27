@@ -1,10 +1,10 @@
 import streamlit as st
-import time
-import requests
 from file_handler import get_text
 from analyzer import calculate_match_score
-from gemini_utils import get_structured_analysis, generate_resume_from_prompt
+from gemini_utils import get_structured_analysis_async, generate_resume_from_prompt_async, quick_summarize_async
 from streamlit_lottie import st_lottie
+import requests
+import asyncio
 
 # 🚀 Streamlit Config
 st.set_page_config(
@@ -39,38 +39,6 @@ st.markdown("""
         margin: 0 !important;
     }
 
-    /* ====== FILE UPLOADER SPECIFIC FIXES ====== */
-    .stFileUploader > div {
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    .stFileUploader > label {
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    .stFileUploader > section {
-        padding: 1rem !important;
-        margin: 0 !important;
-        border: none !important;
-    }
-
-    .stFileUploader > div > div {
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    .stFileUploader .fileDropArea {
-        min-height: 100px !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    .stFileUploader .fileDropArea div:first-child {
-        margin-top: 0 !important;
-    }
-
     /* ====== BUTTON FIXES ====== */
     .stButton > button {
         margin-top: 0 !important;
@@ -82,15 +50,6 @@ st.markdown("""
         padding: 0 !important;
         margin: 0 !important;
         gap: 0 !important;
-    }
-
-    /* ====== ANIMATION CONTAINER ====== */
-    .animation-container {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1000;
     }
 
     /* ====== YOUR ORIGINAL STYLES ====== */
@@ -153,29 +112,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 🔥 Caching & Utility Functions
-@st.cache_data(show_spinner=False)
+# 🔥 Lottie Animation Helper
 def load_lottieurl(url: str):
-    try:
-        r = requests.get(url, timeout=10)
-        if r.status_code != 200:
-            return None
-        return r.json()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error loading animation: {e}")
+    r = requests.get(url)
+    if r.status_code != 200:
         return None
-
-@st.cache_data(show_spinner=False)
-def extract_resume_text(uploaded_file):
-    return get_text(uploaded_file)
-
-@st.cache_data(show_spinner=False)
-def analyze_resume(resume_text, jd_text):
-    return get_structured_analysis(resume_text, jd_text)
-
-@st.cache_data(show_spinner=False)
-def generate_tailored_resume(prompt):
-    return generate_resume_from_prompt(prompt)
+    return r.json()
 
 # 🧠 App Title
 st.title("🤖 HireFit AI – Resume to JD Matcher")
@@ -191,44 +133,33 @@ with left_col:
     st.subheader("📄 Upload Your Resume")
     resume_file = st.file_uploader("Choose a file (PDF, DOCX, TXT)", type=["pdf", "docx", "txt"])
 
-    submit = st.button("🚀 Submit for Analysis")
+    submit = st.button("🚀 Submit for Analysis", key="analyze_button")
 
 # 🔍 On submit
+# 🧑‍💻 Fix: Modify the handling of async function return values
 if submit:
     if not jd_text or not resume_file:
         st.warning("⚠️ Please paste the Job Description and upload your resume.")
     else:
-        # Load and show animation (cached)
+        # Create centered animation container
         animation_container = st.empty()
         with animation_container.container():
             st.markdown('<div class="animation-container">', unsafe_allow_html=True)
             lottie_animation = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_jcikwtux.json")
-            st_lottie(lottie_animation, speed=1, height=300, key="processing_animation")
+            animation = st_lottie(lottie_animation, speed=1, height=300, key="processing_animation")
             st.markdown('</div>', unsafe_allow_html=True)
-
+        
         try:
-            # ⏱ Profiling Start
-            start_total = time.time()
+            # Process the resume and JD
+            resume_text = get_text(resume_file)
 
-            # Extract resume text (cached)
-            start_time = time.time()
-            resume_text = extract_resume_text(resume_file)
-            st.write(f"⏱️ Resume extraction time: {time.time() - start_time:.2f} seconds")
+            # Async call for analysis
+            ai_response = asyncio.run(get_structured_analysis_async(resume_text, jd_text))
 
-            # Calculate match score
-            start_time = time.time()
-            match_score = calculate_match_score(resume_text, jd_text)
-            st.write(f"⏱️ Match score calculation time: {time.time() - start_time:.2f} seconds")
-
-            # Get structured analysis (cached with timeout handling)
-            start_time = time.time()
-            ai_response = analyze_resume(resume_text, jd_text)
-            st.write(f"⏱️ Gemini analysis time: {time.time() - start_time:.2f} seconds")
-
-            # Clear animation after processing
+            # Clear the animation after processing
             animation_container.empty()
 
-            # Utility for extracting sections
+            # 📦 Section extractor utility
             def extract_section(title, text):
                 start = text.find(title)
                 if start == -1:
@@ -236,32 +167,43 @@ if submit:
                 end = text.find("\n\n", start)
                 return text[start + len(title):end].strip() if end != -1 else text[start + len(title):].strip()
 
-            match = extract_section("Match Percentage:", ai_response).replace("%", "").strip()
+            match = extract_section("Match Percentage:", ai_response)
             strengths = extract_section("Strengths:", ai_response)
             weaknesses = extract_section("Weaknesses:", ai_response)
             conclusion = extract_section("Conclusion:", ai_response)
 
-            # Display results
+            match = match.replace("%", "").strip()
+
+            # 📊 Display results
             with right_col:
-                with st.expander("📊 Match Score & Analysis", expanded=True):
-                    st.metric("Resume Match with Job Description", f"{match}%")
+                with st.expander("📊 Click to view Match Score & Analysis", expanded=True):
+                    st.metric(
+                        label="Resume Match with Job Description",
+                        value=f"{match}%",
+                    )
 
                     tab1, tab2, tab3, tab4 = st.tabs(["🟢 Strengths", "🟠 Weaknesses", "📘 Conclusion", "📄 Tailored Resume"])
 
                     with tab1:
-                        st.markdown(strengths or "_No strengths identified._")
+                        st.markdown(strengths or "_No strengths identified._", unsafe_allow_html=True)
 
                     with tab2:
-                        st.markdown(weaknesses or "_No weaknesses found._")
+                        st.markdown(weaknesses or "_No weaknesses found._", unsafe_allow_html=True)
 
                     with tab3:
-                        st.markdown(conclusion or "_No conclusion generated._")
+                        st.markdown(conclusion or "_No conclusion generated._", unsafe_allow_html=True)
 
                     with tab4:
-                        with st.spinner("🛠️ Generating tailored resume..."):
+                        with st.spinner("🛠️ Generating tailored resume using AI..."):
                             try:
                                 prompt = f"""
-You are a professional resume expert. Create a resume tailored to the following job description using the content and strengths of the provided resume.
+You are a professional resume expert. Create a resume tailored to the following job description, using the content and strengths of the provided resume.
+
+Instructions:
+- Use **bold** text for all section headings (e.g., **SUMMARY**, **SKILLS**, **EXPERIENCE**, etc.)
+- DO NOT use any stars (*), hyphens (-), or numbering for bullet points.
+- Simply use line breaks for bullets inside SKILLS and EXPERIENCE.
+- Keep the format professional, clean, and ATS-friendly.
 
 --- Job Description ---
 {jd_text}
@@ -269,9 +211,7 @@ You are a professional resume expert. Create a resume tailored to the following 
 --- Candidate's Resume ---
 {resume_text}
 """
-                                start_time = time.time()
-                                generated_resume = generate_tailored_resume(prompt)
-                                st.write(f"⏱️ Resume generation time: {time.time() - start_time:.2f} seconds")
+                                generated_resume = asyncio.run(generate_resume_from_prompt_async(prompt))
 
                                 formatted_resume = generated_resume.replace("* ", "")
                                 formatted_resume = formatted_resume.replace("**", "<b>").replace("\n", "<br>")
@@ -297,9 +237,5 @@ You are a professional resume expert. Create a resume tailored to the following 
                             except Exception as e:
                                 st.error(f"⚠️ Failed to generate resume: {e}")
 
-            # Total profiling time
-            st.write(f"✅ Total processing time: {time.time() - start_total:.2f} seconds")
-
         except Exception as e:
-            animation_container.empty()
             st.error(f"❌ An error occurred: {e}")
